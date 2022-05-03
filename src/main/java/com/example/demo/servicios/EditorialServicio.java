@@ -29,8 +29,10 @@ public class EditorialServicio {
     }
 
     public void validar(String nombre) throws ErrorServicio {
-        if (nombre == null || nombre.isEmpty()) {
-            throw new ErrorServicio("El nombre de la Entidad no puede ser nulo.");
+        if (nombre == null || nombre.trim().isEmpty()) {
+            throw new ErrorServicio("El nombre no puede ser nulo.");
+        } else if (!editorialRepositorio.editorialPorNombre(nombre).isEmpty()) {
+            throw new ErrorServicio("La editorial ya existe en la base de datos.");
         }
     }
     

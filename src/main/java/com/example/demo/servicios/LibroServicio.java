@@ -19,10 +19,9 @@ public class LibroServicio {
     @Autowired
     private LibroRepositorio libroRepositorio;
     
-    
     public void crearLibro(String ISBN, String titulo, Integer anio, Integer ejemplares, Autor autor, Editorial editorial) throws ErrorServicio {
 
-        validar(ISBN, titulo, anio, ejemplares);
+        validar(ISBN, titulo, anio, ejemplares, autor, editorial);
 
         Libro libro = new Libro();
         libro.setISBN(ISBN);
@@ -38,22 +37,35 @@ public class LibroServicio {
         libroRepositorio.save(libro);
     }
 
-    public void validar(String ISBN, String titulo, Integer anio, Integer ejemplares) throws ErrorServicio {
+    public void validar(String ISBN, String titulo, Integer anio, Integer ejemplares, Autor autor, Editorial editorial) throws ErrorServicio {
 
-        if (ISBN == null || ISBN.isEmpty()) {
-            throw new ErrorServicio("El ISBN no puede ser nulo");
-        }
+        if (ISBN == null || ISBN.trim().isEmpty()) {
+            throw new ErrorServicio("El ISBN no puede ser nulo.");
+        } 
+//        else if (!libroRepositorio.libroPorISBN(ISBN).isEmpty()) {
+//            throw new ErrorServicio("Ya existe un libro con ese ISBN en la base de datos.");
+//        }
 
-        if (titulo == null || titulo.isEmpty()) {
+        if (titulo == null || titulo.trim().isEmpty()) {
             throw new ErrorServicio("El titulo no puede ser nulo");
+        } else if (!libroRepositorio.libroPorTitulo(titulo).isEmpty()) {
+            throw new ErrorServicio("Ya existe un libro con ese título en la base de datos.");
         }
 
-        if (anio == null || anio.toString().length() > 4) {
-            throw new ErrorServicio("El año no puede ser nulo o mayor de 4 dígitos");
+        if (anio <= 0 || anio.toString().length() > 4 || anio == null) {
+            throw new ErrorServicio("El año no puede ser nulo, negativo o mayor de 4 dígitos.");
         }
 
         if (ejemplares <= 0 || ejemplares.toString().trim().isEmpty()) {
             throw new ErrorServicio("Los ejemplares no pueden ser 0 ni menores que 0, nulos o contener espacios.");
+        }
+        
+        if (autor == null) {
+            throw new ErrorServicio("El autor no puede ser nulo.");
+        }
+        
+        if (editorial == null) {
+            throw new ErrorServicio("La editorial no puede ser nula.");
         }
 
     }
@@ -102,23 +114,12 @@ public class LibroServicio {
         }
     }
     
-    
-    public List<Libro> listarTodos() throws ErrorServicio { 
-        
-        if (libroRepositorio.findAll().isEmpty()) {
-            throw new ErrorServicio("No hay libros para buscar.");
-        } else {
-            return libroRepositorio.findAll();
-        }
-    } 
-    
-    
     public List<Libro> buscarLibroPorNombre (String nombre) throws ErrorServicio {
         
         if (nombre.isEmpty() || nombre == null) {
-            throw new ErrorServicio("El nombre del libro no puede ser nulo.");
+            throw new ErrorServicio("El título del libro no puede ser nulo.");
         } else {
-            List<Libro> libroABuscar = libroRepositorio.libroPorNombre(nombre);
+            List<Libro> libroABuscar = libroRepositorio.libroPorTitulo(nombre);
             
             if (libroABuscar.isEmpty()) {
                 throw new ErrorServicio("No se encuentra el libro solicitado.");
@@ -139,5 +140,8 @@ public class LibroServicio {
         }
     }
     
+    public List<Libro> listarLibros() {
+        return libroRepositorio.findAll();
+    }
     
 }
